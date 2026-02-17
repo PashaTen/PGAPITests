@@ -66,30 +66,10 @@ class ApiClients:
         with allure.step("Updating header with authorization"):
             self.session.headers.update({"Authorization": f"Bearer {token}"})
 
-    def get_booking_by_id(self,booking_id:int,accept:str = "application/json",expected_status:int=200):
+    def get_booking_by_id(self,booking_id:int,expected_status:int=200):
         with allure.step(f"Getting booking by ID {booking_id}"):
-            url = f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}/{booking_id}"
+            url=f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}/{booking_id}"
+            response = self.session.get(url)
+        assert response.status_code == expected_status,f"Expected status {expected_status} but got {response.status_code}.Response:{response.text}"
+        return response.json()
 
-            headers = {"Accept": accept}
-            response = self.session.get(url, headers=headers)
-
-        with allure.step(f"Assert status code {expected_status}"):
-            assert response.status_code == expected_status, f"Expected status {expected_status} but got {response.status_code}Response:{response.text}"
-        if accept == "application/json" and response.status_code == 200:
-            booking_data = response.json()
-
-            allure.attach(
-                str(booking_data),
-                name=f"Booking {booking_id} Data",
-                attachment_type=allure.attachment_type.JSON
-            )
-            return booking_data
-        elif accept == "application/json" and response.status_code == 200:
-            allure.attach(
-                response.text,
-                name=f"Booking {booking_id} XML Data",
-                attachment_type=allure.attachment_type.XML
-            )
-            return response.text
-        else:
-            return response.text
