@@ -11,11 +11,11 @@ load_dotenv()
 
 class ApiClients:
     def __init__(self):
-        enviroments_str = os.getenv("ENVIROMENT")
+        enviroment_str = os.getenv("ENVIROMENT")
         try:
             enviroment = Enviroments(enviroment_str)
         except KeyError:
-            raise ValueError(f"Unsupported ENVIROMENT value: {enviroments_str}")
+            raise ValueError(f"Unsupported ENVIROMENT value: {enviroment_str}")
 
         self.base_url = self.get_base_url(enviroment)
         self.session = requests.Session()
@@ -66,9 +66,9 @@ class ApiClients:
         with allure.step("Updating header with authorization"):
             self.session.headers.update({"Authorization": f"Bearer {token}"})
 
-    def get_booking_by_id(self,booking_id:int):
+    def get_booking_by_id(self, booking_id: int):
         with allure.step(f"Getting booking by id: {booking_id}"):
-            url=f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}{booking_id}"
+            url = f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}{booking_id}"
             response = self.session.get(url)
             response.raise_for_status()
         return response.json()
