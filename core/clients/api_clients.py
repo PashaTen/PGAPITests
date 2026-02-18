@@ -11,13 +11,13 @@ load_dotenv()
 
 class ApiClients:
     def __init__(self):
-        enviroments_str = os.getenv("ENVIROMENTS")
+        enviroments_str = os.getenv("ENVIROMENT")
         try:
-            enviroments = Enviroments(enviroments_str)
+            enviroment = Enviroments(enviroment_str)
         except KeyError:
-            raise ValueError(f"Unsupported ENVIROMENTS value: {enviroments_str}")
+            raise ValueError(f"Unsupported ENVIROMENT value: {enviroments_str}")
 
-        self.base_url = self.get_base_url(enviroments)
+        self.base_url = self.get_base_url(enviroment)
         self.session = requests.Session()
         self.session.headers = {
             "Content-Type": "application/json",
@@ -66,10 +66,9 @@ class ApiClients:
         with allure.step("Updating header with authorization"):
             self.session.headers.update({"Authorization": f"Bearer {token}"})
 
-    def get_booking_by_id(self,booking_id:int,expected_status:int=200):
-        with allure.step(f"Getting booking by ID {booking_id}"):
-            url=f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}/{booking_id}"
+    def get_booking_by_id(self,booking_id:int):
+        with allure.step(f"Getting booking by id: {booking_id}"):
+            url=f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}{booking_id}"
             response = self.session.get(url)
-        assert response.status_code == expected_status,f"Expected status {expected_status} but got {response.status_code}.Response:{response.text}"
+            response.raise_for_status()
         return response.json()
-
