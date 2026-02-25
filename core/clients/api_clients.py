@@ -73,6 +73,7 @@ class ApiClients:
             response.raise_for_status()
         return response.json()
 
+
     def create_booking(self, booking_data):
         with allure.step("Creating booking"):
             url = f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}"
