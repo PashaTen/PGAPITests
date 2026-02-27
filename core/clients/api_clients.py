@@ -115,6 +115,6 @@ class ApiClients:
             url = f"{self.base_url}/{Endpoints.BOOKING_ENDPOINT.value}{booking_id}"
             response = self.session.put(url, json=booking_data)
             response.raise_for_status()
-            with allure.step("Checking status code"):
-                assert response.status_code == 200, f"Expected status 200 but got {response.status_code}"
+        with allure.step("Checking status code"):
+            assert response.status_code == 200, f"Expected status 200 but got {response.status_code}"
             return response.json()
