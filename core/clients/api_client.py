@@ -14,7 +14,7 @@ class APIClient:
     def __init__(self):
         environment_str = os.getenv("ENVIRONMENT")
         try:
-            environment = Environments(environment_str)
+            environment = Environments[environment_str]
         except KeyError:
             raise ValueError(f"Unsupported ENVIRONMENT value: {environment_str}")
 

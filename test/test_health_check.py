@@ -1,7 +1,6 @@
 import allure
 import pytest
-
-
+import requests
 
 
 @allure.feature('Test ping')
@@ -16,3 +15,29 @@ def test_ping_server_unavailable(api_client,mocker):
     mocker.patch.object(api_client.session,'get',side_effect=Exception("Server unavailable"))
     with pytest.raises(Exception,match="Server unavailable"):
         api_client.ping()
+
+@allure.feature('Test ping')
+@allure.story('Test wrong HTTP method')
+def test_ping_wrong_method(api_client,mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 405
+    mocker.patch.object(api_client.session,'get',return_value=mock_response)
+    with pytest.raises(AssertionError,match="Expected status 201 but got 405"):
+        api_client.ping()
+
+@allure.feature('Test ping')
+@allure.story('Test connection with different success code')
+def test_ping_success_different_code(api_client,mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mocker.patch.object(api_client.session,'get',return_value=mock_response)
+    with pytest.raises(AssertionError,match="Expected status 201 but got 200"):
+        api_client.ping()
+
+@allure.feature('Test ping')
+@allure.story('Test Timeout')
+def test_ping_timeout(api_client,mocker):
+    mocker.patch.object(api_client.session,'get',side_effect=requests.Timeout)
+    with pytest.raises(requests.Timeout):
+        api_client.ping()
+
