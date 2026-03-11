@@ -10,7 +10,7 @@ import allure
 load_dotenv()
 
 
-class ApiClients:
+class APIClient:
     def __init__(self):
         enviroment_str = os.getenv("ENVIROMENT")
         try:
