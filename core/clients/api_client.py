@@ -22,6 +22,7 @@ class APIClient:
         self.session = requests.Session()
         self.session.headers = {
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
     def get_base_url(self, environments: Environments) -> str:
