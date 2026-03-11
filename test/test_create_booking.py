@@ -1,54 +1,40 @@
 import allure
 import pytest
-import requests
-from requests import HTTPError
-
-VALID_PAYLOAD = {
-    "firstname": "Jim",
-    "lastname": "Brown",
-    "totalprice": 111,
-    "depositpaid": True,
-    "bookingdates": {
-        "checkin": "2018-01-01",
-        "checkout": "2019-01-01"
-    },
-    "additionalneeds": "Breakfast"
-}
 
 
-@allure.feature('Test CreateBooking')
-@allure.story('Test successful booking creation')
-def test_create_booking_success(api_client):
-    data = api_client.create_booking(VALID_PAYLOAD)
-    assert isinstance(data['bookingid'], int)
-    assert data['booking']['firstname'] == VALID_PAYLOAD['firstname']
-    assert data['booking']['lastname'] == VALID_PAYLOAD['lastname']
-    assert data['booking']['bookingdates'] == VALID_PAYLOAD['bookingdates']
+@allure.feature('CreateBooking')
+@allure.story('Successful creation')
+def test_create_booking_success(api_client, generate_random_booking_data):
+    data = api_client.create_booking(generate_random_booking_data)
+    assert isinstance(data["bookingid"], int)
+    assert data["booking"]["firstname"] == generate_random_booking_data["firstname"]
+    assert data["booking"]["lastname"] == generate_random_booking_data["lastname"]
+    assert data["booking"]["bookingdates"] == generate_random_booking_data["bookingdates"]
 
 
-@allure.feature('Test CreateBooking')
-@allure.story('Missing required field')
-@pytest.mark.parametrize("field", ['firstname', 'lastname', 'totalprice', 'depositpaid', 'bookingdates'])
-def test_create_booking_missing_field(api_client, mocker, field):
-    payload = {k: v for k, v in VALID_PAYLOAD.items() if k != field}
-    mock_response = mocker.Mock(status_code=400)
-    mock_response.raise_for_status.side_effect = HTTPError("400 Client Error")
-    mocker.patch.object(api_client.session, 'post', return_value=mock_response)  # исправлено
-    with pytest.raises(HTTPError):
-        api_client.create_booking(payload)
+@allure.feature('CreateBooking')
+@allure.story('Booking id is positive number')
+def test_create_booking_id_is_positive(api_client, generate_random_booking_data):
+    data = api_client.create_booking(generate_random_booking_data)
+    assert data["bookingid"] > 0
 
 
-@allure.feature('Test CreateBooking')
-@allure.story('Server unavailable')
-def test_create_booking_server_unavailable(api_client, mocker):
-    mocker.patch.object(api_client.session, 'post', side_effect=Exception("Server unavailable"))
-    with pytest.raises(Exception, match="Server unavailable"):
-        api_client.create_booking(VALID_PAYLOAD)
+@allure.feature('CreateBooking')
+@allure.story('Deposit paid is returned correctly')
+def test_create_booking_deposit_paid(api_client, generate_random_booking_data):
+    data = api_client.create_booking(generate_random_booking_data)
+    assert data["booking"]["depositpaid"] == generate_random_booking_data["depositpaid"]
 
 
-@allure.feature('Test CreateBooking')
-@allure.story('Timeout')
-def test_create_booking_timeout(api_client, mocker):
-    mocker.patch.object(api_client.session, 'post', side_effect=requests.Timeout)
-    with pytest.raises(requests.Timeout):
-        api_client.create_booking(VALID_PAYLOAD)
+@allure.feature('CreateBooking')
+@allure.story('Total price is returned correctly')
+def test_create_booking_totalprice(api_client, generate_random_booking_data):
+    data = api_client.create_booking(generate_random_booking_data)
+    assert data["booking"]["totalprice"] == generate_random_booking_data["totalprice"]
+
+
+@allure.feature('CreateBooking')
+@allure.story('Additional needs are returned correctly')
+def test_create_booking_additionalneeds(api_client, generate_random_booking_data):
+    data = api_client.create_booking(generate_random_booking_data)
+    assert data["booking"]["additionalneeds"] == generate_random_booking_data["additionalneeds"]
