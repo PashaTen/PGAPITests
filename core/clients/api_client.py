@@ -1,7 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
-from core.setting.enviroments import Enviroments
+from core.setting.environments import Environments
 from core.clients.endpoints import Endpoints
 from core.setting.config import Users, Timeouts
 from requests.auth import HTTPBasicAuth
@@ -12,25 +12,26 @@ load_dotenv()
 
 class APIClient:
     def __init__(self):
-        enviroment_str = os.getenv("ENVIROMENT")
+        environment_str = os.getenv("ENVIRONMENT")
         try:
-            enviroment = Enviroments(enviroment_str)
+            environment = Environments[environment_str]
         except KeyError:
-            raise ValueError(f"Unsupported ENVIROMENT value: {enviroment_str}")
+            raise ValueError(f"Unsupported ENVIRONMENT value: {environment_str}")
 
-        self.base_url = self.get_base_url(enviroment)
+        self.base_url = self.get_base_url(environment)
         self.session = requests.Session()
         self.session.headers = {
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
-    def get_base_url(self, enviroments: Enviroments) -> str:
-        if enviroments == Enviroments.TEST:
+    def get_base_url(self, environments: Environments) -> str:
+        if environments == Environments.TEST:
             return os.getenv("TEST_BASE_URL")
-        elif enviroments == Enviroments.PROD:
+        elif environments == Environments.PROD:
             return os.getenv("PROD_BASE_URL")
         else:
-            raise ValueError(f"Unsupported ENVIROMENTS value: {enviroments}")
+            raise ValueError(f"Unsupported ENVIRONMENTS value: {environments}")
 
     def get(self, endpoint, params=None, status_code=200):
         url = self.base_url + endpoint
@@ -48,7 +49,7 @@ class APIClient:
 
     def ping(self):
         with allure.step("Ping api client"):
-            url = f"{self.base_url}{Endpoints.PING_ENDPOINT}"
+            url = f"{self.base_url}{Endpoints.PING_ENDPOINT.value}"
             response = self.session.get(url)
             response.raise_for_status()
         with allure.step("Assert status code"):
@@ -57,9 +58,9 @@ class APIClient:
 
     def auth(self):
         with allure.step("Getting authenticate"):
-            url = f"{self.base_url}{Endpoints.AUTH_ENDPOINT}"
-            payload = {"username": Users.USERNAME, "password": Users.PASSWORD}
-            response = self.session.post(url, json=payload, timeout=Timeouts.TIMEOUT)
+            url = f"{self.base_url}{Endpoints.AUTH_ENDPOINT.value}"
+            payload = {"username": Users.USERNAME.value, "password": Users.PASSWORD.value}
+            response = self.session.post(url, json=payload, timeout=Timeouts.TIMEOUT.value)
             response.raise_for_status()
         with allure.step("Cheching status code"):
             assert response.status_code == 200, f"Expected status 200 but got {response.status_code}"
@@ -86,7 +87,7 @@ class APIClient:
     def delete_booking(self, booking_id):
         with allure.step("Deleting booking"):
             url = f"{self.base_url}/{Endpoints.BOOKING_ENDPOINT.value}{booking_id}"
-            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME, Users.PASSWORD))
+            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME.value, Users.PASSWORD.value))
             response.raise_for_status()
         with allure.step("Checking status code"):
             assert response.status_code == 201, f"Expected status 201 but got {response.status_code}"
@@ -94,7 +95,7 @@ class APIClient:
 
     def get_booking_ids(self, parasm=None):
         with allure.step("Getting object with bookings"):
-            url = f"{self.base_url}{Endpoints.BOOKING_ENDPOINT}"
+            url = f"{self.base_url}{Endpoints.BOOKING_ENDPOINT.value}"
             response = self.session.get(url, parasm=parasm)
             response.raise_for_status()
         with allure.step("Checking status code"):
